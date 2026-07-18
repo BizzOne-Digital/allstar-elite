@@ -62,6 +62,11 @@ ul { list-style: none; }
 /* ── Utilities ── */
 .container { max-width: var(--container); margin: 0 auto; padding: 0 24px; }
 
+.layout-main { padding-top: 80px; }
+@media (max-width: 768px) {
+  .layout-main { padding-top: 64px; }
+}
+
 .grad-text {
   background: var(--grad-text);
   -webkit-background-clip: text;
