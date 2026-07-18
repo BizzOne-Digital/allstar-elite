@@ -1,0 +1,16 @@
+{
+  "name": "allstar-elite",
+  "version": "1.0.0",
+  "description": "AllStar Elite – Music Distribution Platform",
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../client && npm install",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd client && npm run dev\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

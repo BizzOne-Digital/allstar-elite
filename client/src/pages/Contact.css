@@ -1,0 +1,25 @@
+.contact-hero { position: relative; padding: 80px 0 60px; background: var(--cream); overflow: hidden; }
+.contact-hero__bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(245,166,35,0.12) 0%, transparent 60%); }
+.contact-body { padding: 60px 0 80px; display: flex; flex-direction: column; gap: 40px; }
+
+.contact-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.contact-info-card { display: flex; align-items: center; gap: 16px; padding: 24px; background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-100); }
+.contact-info-card__icon { width: 48px; height: 48px; border-radius: var(--radius-md); background: linear-gradient(135deg,#FFF3E0,#FFE0C0); color: var(--orange); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.contact-info-card strong { display: block; font-family: var(--font-heading); font-weight: 700; font-size: .85rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.contact-info-card a, .contact-info-card span { font-size: .95rem; color: var(--dark); font-weight: 500; text-decoration: none; }
+.contact-info-card a:hover { color: var(--orange); }
+
+.contact-form-wrap { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); border: 1px solid var(--gray-100); padding: 48px; }
+.contact-form h2 { font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 1px; color: var(--dark); margin-bottom: 28px; }
+.contact-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.contact-success { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 40px; text-align: center; }
+.contact-success__icon { width: 72px; height: 72px; border-radius: 50%; background: var(--grad-brand); color: white; display: flex; align-items: center; justify-content: center; }
+.contact-success h2 { font-family: var(--font-display); font-size: 2rem; color: var(--dark); }
+.contact-success p { color: var(--gray-500); max-width: 360px; line-height: 1.7; }
+
+@media (max-width: 768px) {
+  .contact-info { grid-template-columns: 1fr; }
+  .contact-form__row { grid-template-columns: 1fr; }
+  .contact-form-wrap { padding: 28px; }
+}
