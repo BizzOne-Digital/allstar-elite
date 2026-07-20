@@ -1,6 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const User    = require('../models/User');
+const Song    = require('../models/Song');
 const { protect } = require('../middleware/auth');
 const { uploadImage } = require('../config/cloudinary');
 
@@ -53,12 +54,49 @@ router.post('/:id/follow', protect, async (req, res) => {
   }
 });
 
-// GET /api/users/artists — list all artists
+// GET /api/users/:id/profile — public artist profile: streams, listeners, top songs
+router.get('/:id/profile', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('name artistName avatar bio genre social followers createdAt');
+    if (!user) return res.status(404).json({ success: false, message: 'Artist not found' });
+
+    const songs = await Song.find({ artist: req.params.id, status: 'published', isPublic: true })
+      .select('title genre coverUrl plays listeners releaseDate');
+
+    const totalStreams = songs.reduce((sum, s) => sum + (s.plays || 0), 0);
+
+    const uniqueListeners = new Set();
+    songs.forEach(s => s.listeners.forEach(id => uniqueListeners.add(id.toString())));
+
+    const topSongs = [...songs]
+      .sort((a, b) => b.plays - a.plays)
+      .slice(0, 5)
+      .map(s => ({ _id: s._id, title: s.title, genre: s.genre, coverUrl: s.coverUrl, plays: s.plays }));
+
+    res.json({
+      success: true,
+      artist: user,
+      stats: {
+        totalStreams,
+        listenerCount: uniqueListeners.size,
+        songCount: songs.length,
+        followerCount: user.followers.length,
+      },
+      topSongs,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/users/artists — every user who has at least one published song
 router.get('/artists', async (req, res) => {
   try {
-    const artists = await User.find({ role: 'artist' })
+    const artistIds = await Song.distinct('artist', { status: 'published', isPublic: true });
+    const artists = await User.find({ _id: { $in: artistIds } })
       .select('name artistName avatar bio genre followers')
-      .sort('-createdAt').limit(20);
+      .sort('-createdAt');
     res.json({ success: true, artists });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

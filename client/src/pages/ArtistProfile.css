@@ -1,0 +1,46 @@
+.artist-hero { position: relative; padding: 80px 0 48px; text-align: center; overflow: hidden; background: var(--cream); }
+.artist-hero__bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 20%, rgba(245,166,35,0.14) 0%, transparent 60%); }
+.artist-hero__inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
+
+.artist-avatar {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: var(--grad-brand); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 2.4rem;
+  overflow: hidden; margin-bottom: 16px;
+  box-shadow: var(--shadow-brand);
+}
+.artist-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.artist-hero h1 { font-family: var(--font-display); font-size: 2.2rem; letter-spacing: 1px; color: var(--dark); margin-bottom: 10px; }
+.artist-bio { max-width: 520px; color: var(--gray-500); font-size: .95rem; line-height: 1.7; margin-top: 14px; }
+
+.artist-socials { display: flex; gap: 10px; margin-top: 18px; }
+.artist-socials a {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--gray-100); color: var(--gray-600);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.artist-socials a:hover { background: var(--grad-brand); color: white; transform: translateY(-3px); }
+
+.artist-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+  padding: 40px 0;
+}
+.artist-stat {
+  background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--radius-lg);
+  padding: 24px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.artist-stat strong { font-family: var(--font-display); font-size: 1.8rem; color: var(--dark); }
+.artist-stat span { font-size: .8rem; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.artist-section-title {
+  font-family: var(--font-heading); font-weight: 700; font-size: 1.2rem;
+  color: var(--dark); margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .artist-stats { grid-template-columns: 1fr 1fr; }
+}

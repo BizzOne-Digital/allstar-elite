@@ -17,8 +17,9 @@ const SongSchema = new mongoose.Schema({
   price:         { type: Number, default: 15 }, // per song subscription
 
   // Stats
-  plays:   { type: Number, default: 0 },
-  likes:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  plays:     { type: Number, default: 0 },
+  likes:     [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  listeners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // unique logged-in listeners
 
   // Visibility
   isPublic:          { type: Boolean, default: true },

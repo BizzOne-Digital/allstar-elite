@@ -52,6 +52,11 @@ export default function Dashboard() {
             <span className={`badge badge-${isSubscriber ? 'gold' : 'gray'}`}>
               {isSubscriber ? <><IconCrown size={11}/> {user.subscriptionTier}</> : 'Free'}
             </span>
+            {user?.id && (
+              <Link to={`/artist/${user.id}`} style={{ display: 'block', fontSize: '.78rem', color: 'var(--orange)', marginTop: 4 }}>
+                View Public Profile →
+              </Link>
+            )}
           </div>
         </div>
 
@@ -239,8 +244,20 @@ export default function Dashboard() {
 }
 
 function SettingsForm({ user, updateUser }) {
-  const [form, setForm] = useState({ name: user?.name || '', bio: user?.bio || '' });
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    artistName: user?.artistName || '',
+    genre: user?.genre || '',
+    bio: user?.bio || '',
+    social: {
+      instagram: user?.social?.instagram || '',
+      twitter:   user?.social?.twitter || '',
+      youtube:   user?.social?.youtube || '',
+      spotify:   user?.social?.spotify || '',
+    },
+  });
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -253,16 +270,77 @@ function SettingsForm({ user, updateUser }) {
     finally { setSaving(false); }
   };
 
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const fd = new FormData();
+      fd.append('avatar', file);
+      const res = await api.post('/users/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      updateUser({ ...user, avatar: res.data.avatar });
+      toast.success('Profile picture updated!');
+    } catch {
+      toast.error('Could not upload picture.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSave} className="settings-form">
       <div className="form-group">
+        <label className="form-label">Profile Picture</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div className="dash-avatar" style={{ width: 64, height: 64, fontSize: '1.4rem' }}>
+            {user?.avatar
+              ? <img src={user.avatar} alt={user.name} />
+              : <span>{user?.name?.[0]?.toUpperCase()}</span>
+            }
+          </div>
+          <input type="file" accept="image/*" className="form-input" style={{ padding: '10px', maxWidth: 280 }} onChange={handleAvatarChange} disabled={uploadingAvatar} />
+        </div>
+      </div>
+
+      <div className="form-group">
         <label className="form-label">Display Name</label>
         <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="form-group">
+          <label className="form-label">Artist Name</label>
+          <input className="form-input" value={form.artistName} onChange={e => setForm(f => ({ ...f, artistName: e.target.value }))} placeholder="Shown on your public profile" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Genre</label>
+          <input className="form-input" value={form.genre} onChange={e => setForm(f => ({ ...f, genre: e.target.value }))} placeholder="e.g. Hip-Hop, Pop" />
+        </div>
       </div>
       <div className="form-group">
         <label className="form-label">Bio</label>
         <textarea className="form-input" rows={4} value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Tell your fans about yourself..." />
       </div>
+
+      <div className="dash-section-title" style={{ marginTop: 8 }}>Social Links</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="form-group">
+          <label className="form-label">Instagram</label>
+          <input className="form-input" value={form.social.instagram} onChange={e => setForm(f => ({ ...f, social: { ...f.social, instagram: e.target.value } }))} placeholder="https://instagram.com/you" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Twitter / X</label>
+          <input className="form-input" value={form.social.twitter} onChange={e => setForm(f => ({ ...f, social: { ...f.social, twitter: e.target.value } }))} placeholder="https://twitter.com/you" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">YouTube</label>
+          <input className="form-input" value={form.social.youtube} onChange={e => setForm(f => ({ ...f, social: { ...f.social, youtube: e.target.value } }))} placeholder="https://youtube.com/@you" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Spotify</label>
+          <input className="form-input" value={form.social.spotify} onChange={e => setForm(f => ({ ...f, social: { ...f.social, spotify: e.target.value } }))} placeholder="https://open.spotify.com/artist/..." />
+        </div>
+      </div>
+
       <button type="submit" className="btn btn-primary" disabled={saving}>
         {saving ? 'Saving...' : 'Save Changes'}
       </button>

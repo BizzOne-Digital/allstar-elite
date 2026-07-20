@@ -21,6 +21,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import UploadTrack from './pages/UploadTrack';
+import ArtistProfile from './pages/ArtistProfile';
+import Artists from './pages/Artists';
 import AdminPanel from './pages/admin/AdminPanel';
 import NotFound from './pages/NotFound';
 
@@ -53,6 +55,8 @@ export default function App() {
             <Route path="/blog" element={<Layout><Blog /></Layout>} />
             <Route path="/blog/:id" element={<Layout><BlogPost /></Layout>} />
             <Route path="/contact" element={<Layout><Contact /></Layout>} />
+            <Route path="/artist/:id" element={<Layout><ArtistProfile /></Layout>} />
+            <Route path="/artists" element={<Layout><Artists /></Layout>} />
 
             {/* Auth pages — no footer */}
             <Route path="/login" element={<Layout noFooter><Login /></Layout>} />

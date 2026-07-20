@@ -1,7 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const Song    = require('../models/Song');
-const { protect, adminOnly, subscriberOnly } = require('../middleware/auth');
+const { protect, adminOnly, subscriberOnly, optionalAuth } = require('../middleware/auth');
 const { uploadAudio, uploadImage } = require('../config/cloudinary');
 const multer = require('multer');
 
@@ -59,12 +59,17 @@ router.get('/exclusive', protect, subscriberOnly, async (req, res) => {
 });
 
 // GET /api/songs/:id
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const song = await Song.findById(req.params.id).populate('artist', 'name artistName avatar');
     if (!song) return res.status(404).json({ success: false, message: 'Song not found' });
+
     // Increment play count
     song.plays++;
+    // Track unique listeners — only for logged-in users, avoids double-counting the same person
+    if (req.user && !song.listeners.some(id => id.toString() === req.user.id)) {
+      song.listeners.push(req.user.id);
+    }
     await song.save();
     res.json({ success: true, song });
   } catch (err) {

@@ -1,15 +1,28 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
 
+const cartKey = (userId) => `ae_cart_${userId || 'guest'}`;
+
 export function CartProvider({ children }) {
+  const { user } = useAuth();
+  const userId = user?.id || null;
   const [items, setItems] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('ae_cart')) || []; } catch { return []; }
+    try { return JSON.parse(localStorage.getItem(cartKey(userId))) || []; } catch { return []; }
   });
+  const loadedFor = useRef(userId);
+
+  // Reload the correct cart whenever the logged-in user changes (login/logout/switch account)
+  useEffect(() => {
+    if (loadedFor.current === userId) return;
+    loadedFor.current = userId;
+    try { setItems(JSON.parse(localStorage.getItem(cartKey(userId))) || []); } catch { setItems([]); }
+  }, [userId]);
 
   useEffect(() => {
-    localStorage.setItem('ae_cart', JSON.stringify(items));
-  }, [items]);
+    localStorage.setItem(cartKey(userId), JSON.stringify(items));
+  }, [items, userId]);
 
   const addItem = (product, qty = 1) => {
     setItems(prev => {

@@ -264,7 +264,13 @@ export default function Home() {
                 </div>
                 <div className="player-track__info">
                   <span>{s.title}</span>
-                  <small>{s.artist?.artistName || s.artist?.name || s.artistName || 'AllStar Elite Artist'}</small>
+                  {s.artist?._id ? (
+                    <Link to={`/artist/${s.artist._id}`} onClick={e => e.stopPropagation()}>
+                      <small>{s.artist?.artistName || s.artist?.name}</small>
+                    </Link>
+                  ) : (
+                    <small>{s.artistName || 'AllStar Elite Artist'}</small>
+                  )}
                 </div>
                 <div className="player-track__dur">{s.duration || '—'}</div>
                 <button className="player-track__btn" onClick={() => playPause(s)}>
