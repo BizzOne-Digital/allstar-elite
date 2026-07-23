@@ -8,9 +8,14 @@ const { uploadImage } = require('../config/cloudinary');
 // PUT /api/users/profile
 router.put('/profile', protect, async (req, res) => {
   try {
-    const allowed = ['name', 'artistName', 'bio', 'genre', 'social', 'notifEnabled'];
+    const allowed = ['name', 'artistName', 'bio', 'genre', 'social', 'notifEnabled', 'email', 'phone'];
     const updates = {};
     allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
+
+    if (updates.email) {
+      const existing = await User.findOne({ email: updates.email.toLowerCase().trim(), _id: { $ne: req.user.id } });
+      if (existing) return res.status(400).json({ success: false, message: 'That email is already in use.' });
+    }
 
     const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
     res.json({ success: true, user });

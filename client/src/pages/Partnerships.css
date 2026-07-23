@@ -1,0 +1,22 @@
+.partnerships-hero { position: relative; padding: 80px 0 48px; background: var(--cream); overflow: hidden; }
+.partnerships-hero__bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, rgba(245,166,35,0.14) 0%, transparent 60%); }
+
+.partnerships-body { padding: 56px 0 100px; }
+
+.partnerships-steps {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  margin-bottom: 56px;
+}
+.partnerships-step {
+  background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--radius-lg);
+  padding: 28px 24px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.partnerships-step h3 { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; color: var(--dark); }
+.partnerships-step p { font-size: .88rem; color: var(--gray-500); line-height: 1.6; }
+
+.partnerships-form-wrap { display: flex; justify-content: center; }
+
+@media (max-width: 900px) {
+  .partnerships-steps { grid-template-columns: 1fr; }
+}

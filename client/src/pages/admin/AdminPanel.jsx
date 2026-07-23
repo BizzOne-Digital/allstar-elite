@@ -4,15 +4,17 @@ import api from '../../utils/api';
 import {
   IconUsers, IconMusic, IconPackage, IconDollar, IconVideo, IconBarChart,
   IconSettings, IconUpload, IconTrash, IconEdit, IconEye, IconCheck, IconX,
-  IconCrown, IconBell
+  IconCrown, IconBell, IconTrendingUp,
 } from '../../components/ui/Icons';
 import './AdminPanel.css';
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: <IconBarChart size={17}/> },
+  { id: 'analytics', label: 'Analytics', icon: <IconTrendingUp size={17}/> },
   { id: 'songs', label: 'Songs', icon: <IconMusic size={17}/> },
   { id: 'products', label: 'Products', icon: <IconPackage size={17}/> },
   { id: 'blog', label: 'Blog', icon: <IconEdit size={17}/> },
+  { id: 'partnerships', label: 'Partnerships', icon: <IconCrown size={17}/> },
   { id: 'orders', label: 'Orders', icon: <IconDollar size={17}/> },
   { id: 'users', label: 'Users', icon: <IconUsers size={17}/> },
   { id: 'videos', label: 'Videos', icon: <IconVideo size={17}/> },
@@ -28,6 +30,7 @@ export default function AdminPanel() {
   const [orders, setOrders] = useState([]);
   const [videos, setVideos] = useState([]);
   const [blogs, setBlogs] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingBlog, setEditingBlog] = useState(null);
 
@@ -43,6 +46,7 @@ export default function AdminPanel() {
     api.get('/orders').then(r => setOrders(r.data.orders || [])).catch(() => {});
     api.get('/videos').then(r => setVideos(r.data.videos || [])).catch(() => {});
     api.get('/blog').then(r => setBlogs(r.data.posts || [])).catch(() => {});
+    api.get('/brand-inquiries').then(r => setInquiries(r.data.inquiries || [])).catch(() => {});
   }, []);
 
   const handleDeleteSong = async (id) => {
@@ -83,6 +87,20 @@ export default function AdminPanel() {
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed.');
     }
+  };
+
+  const handleInquiryStatus = async (id, status) => {
+    try {
+      await api.put(`/brand-inquiries/${id}`, { status });
+      setInquiries(i => i.map(x => x._id === id ? { ...x, status } : x));
+      toast.success('Inquiry updated.');
+    } catch { toast.error('Update failed.'); }
+  };
+
+  const handleDeleteInquiry = async (id) => {
+    if (!confirm('Delete this inquiry?')) return;
+    try { await api.delete(`/brand-inquiries/${id}`); setInquiries(i => i.filter(x => x._id !== id)); toast.success('Inquiry deleted.'); }
+    catch { toast.error('Failed to delete.'); }
   };
 
   const handleOrderStatus = async (id, status) => {
@@ -144,6 +162,61 @@ export default function AdminPanel() {
                 <span className={`badge badge-${!u.subscriptionTier || u.subscriptionTier === 'free' ? 'gray' : 'gold'}`}>{u.subscriptionTier || 'free'}</span>,
                 new Date(u.createdAt).toLocaleDateString()
               ])}
+            />
+          </div>
+        )}
+
+        {/* ANALYTICS */}
+        {activeTab === 'analytics' && (
+          <div>
+            <div className="admin-section-title">Best-Selling Products</div>
+            <AdminTable
+              cols={['Product', 'Price', 'Units Sold', 'Revenue', 'Stock Left', 'Status']}
+              rows={[...products]
+                .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+                .map(p => [
+                  p.name,
+                  `$${p.price?.toFixed ? p.price.toFixed(2) : p.price}`,
+                  p.sold || 0,
+                  `$${((p.sold || 0) * (p.price || 0)).toFixed(2)}`,
+                  p.stock,
+                  p.sold > 0
+                    ? <span className="badge badge-green">Selling</span>
+                    : <span className="badge badge-gray">No sales yet</span>,
+                ])}
+            />
+
+            <div className="admin-section-title" style={{ marginTop: 32 }}>Products Needing Attention</div>
+            <p style={{ fontSize: '.85rem', color: 'var(--gray-400)', marginTop: -10, marginBottom: 16 }}>
+              High stock, zero (or very low) sales — consider a discount, better photos, or replacing these.
+            </p>
+            <AdminTable
+              cols={['Product', 'Price', 'Units Sold', 'Stock Left']}
+              rows={[...products]
+                .filter(p => p.stock > 0)
+                .sort((a, b) => (a.sold || 0) - (b.sold || 0) || b.stock - a.stock)
+                .slice(0, 5)
+                .map(p => [
+                  p.name,
+                  `$${p.price?.toFixed ? p.price.toFixed(2) : p.price}`,
+                  p.sold || 0,
+                  p.stock,
+                ])}
+            />
+
+            <div className="admin-section-title" style={{ marginTop: 32 }}>Top Songs by Streams</div>
+            <AdminTable
+              cols={['Song', 'Artist', 'Streams', 'Listeners', 'Status']}
+              rows={[...songs]
+                .sort((a, b) => (b.plays || 0) - (a.plays || 0))
+                .slice(0, 10)
+                .map(s => [
+                  s.title,
+                  s.artist?.artistName || s.artist?.name || s.artistName || '—',
+                  s.plays || 0,
+                  s.listeners?.length || 0,
+                  <span className={`badge badge-${s.status === 'published' ? 'green' : 'gray'}`}>{s.status}</span>,
+                ])}
             />
           </div>
         )}
@@ -217,6 +290,24 @@ export default function AdminPanel() {
               ])}
             />
           </div>
+        )}
+
+        {/* PARTNERSHIPS */}
+        {activeTab === 'partnerships' && (
+          <AdminTable
+            cols={['Brand', 'Contact', 'Email', 'Budget', 'Status', 'Date', 'Actions']}
+            rows={inquiries.map(inq => [
+              <span title={inq.message}>{inq.brandName}</span>, inq.contactName, inq.email, inq.budget || '—',
+              <select className="form-select" style={{ fontSize: '.78rem', padding: '4px 8px', width: 110 }} value={inq.status}
+                onChange={e => handleInquiryStatus(inq._id, e.target.value)}>
+                {['new', 'contacted', 'closed'].map(s => <option key={s} value={s}>{s}</option>)}
+              </select>,
+              new Date(inq.createdAt).toLocaleDateString(),
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className="icon-btn-admin" title="Delete" onClick={() => handleDeleteInquiry(inq._id)}><IconTrash size={14}/></button>
+              </div>
+            ])}
+          />
         )}
 
         {editingBlog && (

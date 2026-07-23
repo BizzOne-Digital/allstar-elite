@@ -23,6 +23,7 @@ import Dashboard from './pages/Dashboard';
 import UploadTrack from './pages/UploadTrack';
 import ArtistProfile from './pages/ArtistProfile';
 import Artists from './pages/Artists';
+import Partnerships from './pages/Partnerships';
 import AdminPanel from './pages/admin/AdminPanel';
 import NotFound from './pages/NotFound';
 
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/contact" element={<Layout><Contact /></Layout>} />
             <Route path="/artist/:id" element={<Layout><ArtistProfile /></Layout>} />
             <Route path="/artists" element={<Layout><Artists /></Layout>} />
+            <Route path="/partnerships" element={<Layout><Partnerships /></Layout>} />
 
             {/* Auth pages — no footer */}
             <Route path="/login" element={<Layout noFooter><Login /></Layout>} />

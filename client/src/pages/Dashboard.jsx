@@ -246,6 +246,8 @@ export default function Dashboard() {
 function SettingsForm({ user, updateUser }) {
   const [form, setForm] = useState({
     name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
     artistName: user?.artistName || '',
     genre: user?.genre || '',
     bio: user?.bio || '',
@@ -266,7 +268,9 @@ function SettingsForm({ user, updateUser }) {
       const res = await api.put('/users/profile', form);
       updateUser(res.data.user);
       toast.success('Profile updated!');
-    } catch { toast.error('Update failed.'); }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Update failed.');
+    }
     finally { setSaving(false); }
   };
 
@@ -291,14 +295,14 @@ function SettingsForm({ user, updateUser }) {
     <form onSubmit={handleSave} className="settings-form">
       <div className="form-group">
         <label className="form-label">Profile Picture</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="settings-avatar-row">
           <div className="dash-avatar" style={{ width: 64, height: 64, fontSize: '1.4rem' }}>
             {user?.avatar
               ? <img src={user.avatar} alt={user.name} />
               : <span>{user?.name?.[0]?.toUpperCase()}</span>
             }
           </div>
-          <input type="file" accept="image/*" className="form-input" style={{ padding: '10px', maxWidth: 280 }} onChange={handleAvatarChange} disabled={uploadingAvatar} />
+          <input type="file" accept="image/*" className="form-input" style={{ padding: '10px' }} onChange={handleAvatarChange} disabled={uploadingAvatar} />
         </div>
       </div>
 
@@ -306,7 +310,17 @@ function SettingsForm({ user, updateUser }) {
         <label className="form-label">Display Name</label>
         <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="settings-form__row">
+        <div className="form-group">
+          <label className="form-label">Email</label>
+          <input type="email" className="form-input" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Phone</label>
+          <input className="form-input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+1 555 123 4567" />
+        </div>
+      </div>
+      <div className="settings-form__row">
         <div className="form-group">
           <label className="form-label">Artist Name</label>
           <input className="form-input" value={form.artistName} onChange={e => setForm(f => ({ ...f, artistName: e.target.value }))} placeholder="Shown on your public profile" />
@@ -322,7 +336,7 @@ function SettingsForm({ user, updateUser }) {
       </div>
 
       <div className="dash-section-title" style={{ marginTop: 8 }}>Social Links</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="settings-form__row">
         <div className="form-group">
           <label className="form-label">Instagram</label>
           <input className="form-input" value={form.social.instagram} onChange={e => setForm(f => ({ ...f, social: { ...f.social, instagram: e.target.value } }))} placeholder="https://instagram.com/you" />

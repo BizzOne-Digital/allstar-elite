@@ -32,6 +32,7 @@ app.use('/api/subscribe', require('./routes/subscriptions'));
 app.use('/api/contact',   require('./routes/contact'));
 app.use('/api/admin',     require('./routes/admin'));
 app.use('/api/blog',      require('./routes/blog'));
+app.use('/api/brand-inquiries', require('./routes/brandInquiries'));
 app.use('/api/upload',    require('./routes/upload'));
 
 // ── Health Check ──

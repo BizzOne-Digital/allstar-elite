@@ -26,7 +26,7 @@ export default function Footer() {
             <h4>Company</h4>
             <ul>
               <li><Link to="/about">About Us</Link></li>
-              <li><Link to="/team">Our Team</Link></li>
+              <li><Link to="/about">Our Team</Link></li>
               <li><Link to="/blog">Blog</Link></li>
               <li><Link to="/contact">Contact</Link></li>
             </ul>
@@ -39,6 +39,7 @@ export default function Footer() {
               <li><Link to="/services">Distribution</Link></li>
               <li><Link to="/services">Merchandise</Link></li>
               <li><Link to="/services">Exclusive Videos</Link></li>
+              <li><Link to="/partnerships">Brand Partnerships</Link></li>
               <li><Link to="/pricing">Pricing</Link></li>
             </ul>
           </div>
