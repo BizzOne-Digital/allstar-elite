@@ -67,9 +67,9 @@ export default function Footer() {
         <div className="footer__bottom">
           <p>&copy; {new Date().getFullYear()} AllStar Elite. All rights reserved.</p>
           <div className="footer__legal">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Cookie Policy</a>
+            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/terms">Terms of Service</Link>
+            <Link to="/cookies">Cookie Policy</Link>
           </div>
         </div>
       </div>

@@ -89,7 +89,7 @@ export default function Register() {
             </div>
 
             <p style={{ fontSize: '.78rem', color: 'var(--gray-400)', marginBottom: 16 }}>
-              By creating an account, you agree to our <a href="#" style={{ color: 'var(--orange)' }}>Terms</a> and <a href="#" style={{ color: 'var(--orange)' }}>Privacy Policy</a>.
+              By creating an account, you agree to our <Link to="/terms" style={{ color: 'var(--orange)' }}>Terms</Link> and <Link to="/privacy" style={{ color: 'var(--orange)' }}>Privacy Policy</Link>.
             </p>
             <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
               {loading ? 'Creating Account...' : <>Create Free Account <IconArrowRight size={18} /></>}
