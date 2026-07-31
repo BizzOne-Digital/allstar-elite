@@ -1,4 +1,3 @@
-# AllStar Elite — Music Distribution Platform
 
 > "Ain't Nobody Else Like Me"
 
