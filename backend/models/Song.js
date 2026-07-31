@@ -15,6 +15,13 @@ const SongSchema = new mongoose.Schema({
   platforms:     [{ type: String }],
   releaseDate:   { type: Date, default: Date.now },
   price:         { type: Number, default: 15 }, // per song subscription
+  isrc:          { type: String, trim: true }, // International Standard Recording Code (optional, artist-supplied or auto-assigned)
+  iswc:          { type: String, trim: true }, // International Standard Musical Work Code (optional)
+
+  // Pre-save campaign (for unreleased/upcoming songs)
+  isPreSave:      { type: Boolean, default: false },
+  previewSeconds: { type: Number, default: 46 }, // how much of the track fans can preview before release
+  preSaves:       [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
   // Stats
   plays:     { type: Number, default: 0 },

@@ -24,6 +24,7 @@ import UploadTrack from './pages/UploadTrack';
 import ArtistProfile from './pages/ArtistProfile';
 import Artists from './pages/Artists';
 import Partnerships from './pages/Partnerships';
+import Upcoming from './pages/Upcoming';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import CookiePolicy from './pages/CookiePolicy';
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="/artist/:id" element={<Layout><ArtistProfile /></Layout>} />
             <Route path="/artists" element={<Layout><Artists /></Layout>} />
             <Route path="/partnerships" element={<Layout><Partnerships /></Layout>} />
+            <Route path="/upcoming" element={<Layout><Upcoming /></Layout>} />
             <Route path="/terms" element={<Layout><Terms /></Layout>} />
             <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
             <Route path="/cookies" element={<Layout><CookiePolicy /></Layout>} />

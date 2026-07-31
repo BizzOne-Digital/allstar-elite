@@ -26,6 +26,34 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/songs/upcoming — public pre-save campaigns (unreleased songs)
+router.get('/upcoming', async (req, res) => {
+  try {
+    const songs = await Song.find({ isPreSave: true, isPublic: true, releaseDate: { $gt: new Date() } })
+      .populate('artist', 'name artistName avatar')
+      .sort('releaseDate');
+    res.json({ success: true, songs });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/songs/:id/presave — a fan pre-saves an upcoming song
+router.post('/:id/presave', protect, async (req, res) => {
+  try {
+    const song = await Song.findById(req.params.id);
+    if (!song) return res.status(404).json({ success: false, message: 'Song not found' });
+
+    const already = song.preSaves.some(id => id.toString() === req.user.id);
+    if (!already) song.preSaves.push(req.user.id);
+    await song.save();
+
+    res.json({ success: true, preSaved: true, count: song.preSaves.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // GET /api/songs/admin/all — every song, any status (admin only)
 router.get('/admin/all', protect, adminOnly, async (req, res) => {
   try {
@@ -83,7 +111,7 @@ router.post('/',
   uploadAudio.single('audio'),
   async (req, res) => {
     try {
-      const { title, genre, subscriberOnly, isPublic } = req.body;
+      const { title, genre, subscriberOnly, isPublic, isrc, iswc, isPreSave, previewSeconds, releaseDate } = req.body;
       if (!req.file) return res.status(400).json({ success: false, message: 'Audio file required' });
 
       const song = await Song.create({
@@ -96,6 +124,11 @@ router.post('/',
         subscriberOnly:  subscriberOnly === 'true',
         isPublic:        isPublic !== 'false',
         status:          'draft',
+        isrc,
+        iswc,
+        isPreSave:       isPreSave === 'true',
+        previewSeconds:  previewSeconds ? Number(previewSeconds) : undefined,
+        releaseDate:     releaseDate || undefined,
       });
 
       res.status(201).json({ success: true, song });

@@ -53,7 +53,14 @@ STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 ADMIN_REGISTRATION_CODE=ALLSTAR2025
 NODE_ENV=development
+
+# YouTube sync (Google Cloud Console > OAuth 2.0 Client)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_REDIRECT_URI=https://your-backend-domain.com/api/youtube/callback
 ```
+
+To enable YouTube sync, create OAuth credentials at [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → Credentials, enable the **YouTube Data API v3**, and add the redirect URI above as an authorized redirect URI.
 
 ### 2. Frontend Setup
 

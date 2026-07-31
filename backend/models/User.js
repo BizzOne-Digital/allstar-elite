@@ -41,6 +41,16 @@ const UserSchema = new mongoose.Schema({
   isEmailVerified: { type: Boolean, default: false },
   emailVerifyToken: String,
 
+  // YouTube sync
+  youtube: {
+    connected:    { type: Boolean, default: false },
+    channelId:    String,
+    channelTitle: String,
+    accessToken:  String,
+    refreshToken: String,
+    tokenExpiry:  Date,
+  },
+
   createdAt: { type: Date, default: Date.now },
 });
 

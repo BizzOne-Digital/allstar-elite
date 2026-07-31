@@ -2,11 +2,22 @@ const express = require('express');
 const router  = express.Router();
 const User    = require('../models/User');
 const { protect } = require('../middleware/auth');
-const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Lazily create the Stripe client so a missing/placeholder key only breaks
+// subscription routes, not the whole server, if it isn't configured yet.
+let stripeClient = null;
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) return null;
+  if (!stripeClient) stripeClient = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  return stripeClient;
+};
 
 // POST /api/subscribe/checkout — create Stripe session
 router.post('/checkout', protect, async (req, res) => {
   try {
+    const stripe = getStripe();
+    if (!stripe) return res.status(503).json({ success: false, message: 'Payments are not configured yet.' });
+
     const { plan } = req.body; // 'monthly' | 'yearly'
     const priceMap = {
       monthly: { amount: 1500, interval: 'month', label: 'Pro Monthly' },
@@ -53,6 +64,9 @@ router.post('/checkout', protect, async (req, res) => {
 
 // POST /api/subscribe/webhook — Stripe webhook
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe) return res.status(503).json({ success: false, message: 'Payments are not configured yet.' });
+
   const sig  = req.headers['stripe-signature'];
   let event;
   try {

@@ -5,7 +5,7 @@ import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import {
   IconMusic, IconDollar, IconTrendingUp, IconUsers, IconCrown, IconSettings,
-  IconUpload, IconBell, IconArrowRight, IconPlay, IconEdit, IconEye
+  IconUpload, IconBell, IconArrowRight, IconPlay, IconEdit, IconEye, IconVideo, IconCheck,
 } from '../components/ui/Icons';
 import './Dashboard.css';
 
@@ -21,6 +21,20 @@ export default function Dashboard() {
     api.get('/users/me').then(r => updateUser(r.data.user)).catch(() => {});
     api.get('/songs/mine').then(r => setSongs(r.data.songs || [])).catch(() => {});
     api.get('/orders/mine').then(r => setOrders(r.data.orders || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const youtubeResult = params.get('youtube');
+    if (youtubeResult === 'connected') {
+      toast.success('YouTube channel connected!');
+      setActiveTab('videos');
+      window.history.replaceState({}, '', '/dashboard');
+    } else if (youtubeResult === 'error') {
+      toast.error('Could not connect YouTube. Please try again.');
+      setActiveTab('videos');
+      window.history.replaceState({}, '', '/dashboard');
+    }
   }, []);
 
   const isSubscriber = !!user?.subscriptionTier && user.subscriptionTier !== 'free';
@@ -64,6 +78,7 @@ export default function Dashboard() {
           {[
             { id: 'overview', label: 'Overview', icon: <IconTrendingUp size={17}/> },
             { id: 'music', label: 'My Music', icon: <IconMusic size={17}/> },
+            { id: 'videos', label: 'Videos', icon: <IconVideo size={17}/> },
             { id: 'orders', label: 'My Orders', icon: <IconDollar size={17}/> },
             { id: 'settings', label: 'Settings', icon: <IconSettings size={17}/> },
           ].map(t => (
@@ -202,6 +217,11 @@ export default function Dashboard() {
               </>
             )}
           </div>
+        )}
+
+        {/* Videos Tab */}
+        {activeTab === 'videos' && (
+          <VideosTab isSubscriber={isSubscriber} />
         )}
 
         {/* Orders Tab */}
@@ -359,5 +379,151 @@ function SettingsForm({ user, updateUser }) {
         {saving ? 'Saving...' : 'Save Changes'}
       </button>
     </form>
+  );
+}
+
+function VideosTab({ isSubscriber }) {
+  const [ytStatus, setYtStatus] = useState({ connected: false, channelTitle: null });
+  const [connecting, setConnecting] = useState(false);
+  const [form, setForm] = useState({ title: '', description: '', isExclusive: true, syncToYoutube: false });
+  const [videoFile, setVideoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    api.get('/youtube/status').then(r => setYtStatus(r.data)).catch(() => {});
+  }, []);
+
+  const handleConnectYoutube = async () => {
+    setConnecting(true);
+    try {
+      const res = await api.get('/youtube/connect');
+      window.location.href = res.data.url;
+    } catch {
+      toast.error('Could not start YouTube connection.');
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnectYoutube = async () => {
+    try {
+      await api.delete('/youtube/disconnect');
+      setYtStatus({ connected: false, channelTitle: null });
+      toast.success('YouTube disconnected.');
+    } catch {
+      toast.error('Something went wrong.');
+    }
+  };
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    if (!videoFile) return toast.error('Please select a video file.');
+
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('title', form.title);
+      fd.append('description', form.description);
+      fd.append('isExclusive', form.isExclusive);
+      fd.append('video', videoFile);
+
+      const res = await api.post('/videos', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast.success('Video uploaded!');
+
+      if (form.syncToYoutube && ytStatus.connected) {
+        toast('Syncing to YouTube — this can take a minute...', { icon: '⏳' });
+        try {
+          await api.post('/youtube/upload-from-url', {
+            videoUrl: res.data.video.videoUrl,
+            title: form.title,
+            description: form.description,
+          });
+          toast.success('Synced to YouTube!');
+        } catch {
+          toast.error('Video uploaded, but YouTube sync failed.');
+        }
+      }
+
+      setForm({ title: '', description: '', isExclusive: true, syncToYoutube: false });
+      setVideoFile(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Upload failed.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (!isSubscriber) {
+    return (
+      <div className="dash-locked">
+        <IconCrown size={32} style={{ color: 'var(--gold)' }} />
+        <h3>Video uploads require a paid plan</h3>
+        <p>Upgrade to Monthly or Yearly to upload exclusive videos and sync them to YouTube.</p>
+        <Link to="/pricing" className="btn btn-primary">View Plans <IconArrowRight size={16}/></Link>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="dash-section-title">YouTube Sync</div>
+      <div className="settings-form" style={{ maxWidth: 560, marginBottom: 32 }}>
+        {ytStatus.connected ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <IconCheck size={20} style={{ color: 'var(--orange)' }} />
+              <div>
+                <strong style={{ display: 'block' }}>Connected</strong>
+                <span style={{ fontSize: '.85rem', color: 'var(--gray-400)' }}>{ytStatus.channelTitle}</span>
+              </div>
+            </div>
+            <button className="btn btn-outline" onClick={handleDisconnectYoutube}>Disconnect</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <p style={{ margin: 0, fontSize: '.9rem', color: 'var(--gray-500)' }}>
+              Connect your YouTube channel to automatically sync videos you upload here.
+            </p>
+            <button className="btn btn-primary" onClick={handleConnectYoutube} disabled={connecting}>
+              {connecting ? 'Redirecting…' : 'Connect YouTube'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="dash-section-title">Upload a Video</div>
+      <form onSubmit={handleUpload} className="settings-form" style={{ maxWidth: 560 }}>
+        <div className="form-group">
+          <label className="form-label">Title</label>
+          <input className="form-input" required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Description</label>
+          <textarea className="form-input" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Video File</label>
+          <input type="file" accept="video/*" required className="form-input" style={{ padding: '10px' }} onChange={e => setVideoFile(e.target.files[0])} />
+        </div>
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input type="checkbox" id="isExclusive" checked={form.isExclusive} onChange={e => setForm(f => ({ ...f, isExclusive: e.target.checked }))} />
+          <label htmlFor="isExclusive" style={{ fontSize: '.9rem' }}>Subscriber-only exclusive video</label>
+        </div>
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            type="checkbox"
+            id="syncToYoutube"
+            checked={form.syncToYoutube}
+            disabled={!ytStatus.connected}
+            onChange={e => setForm(f => ({ ...f, syncToYoutube: e.target.checked }))}
+          />
+          <label htmlFor="syncToYoutube" style={{ fontSize: '.9rem' }}>
+            Also upload to my YouTube channel {!ytStatus.connected && '(connect YouTube above first)'}
+          </label>
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={uploading}>
+          {uploading ? 'Uploading…' : <>Upload Video <IconUpload size={16}/></>}
+        </button>
+      </form>
+    </div>
   );
 }

@@ -5,6 +5,13 @@ const Song    = require('../models/Song');
 const { protect } = require('../middleware/auth');
 const { uploadImage } = require('../config/cloudinary');
 
+// GET /api/users/me — current logged-in user
+router.get('/me', protect, async (req, res) => {
+  const user = req.user.toObject();
+  user.id = req.user._id; // keep the same shape as the login response
+  res.json({ success: true, user });
+});
+
 // PUT /api/users/profile
 router.put('/profile', protect, async (req, res) => {
   try {
@@ -17,7 +24,9 @@ router.put('/profile', protect, async (req, res) => {
       if (existing) return res.status(400).json({ success: false, message: 'That email is already in use.' });
     }
 
-    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
+    const updated = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
+    const user = updated.toObject();
+    user.id = updated._id;
     res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -10,7 +10,11 @@ export default function UploadTrack() {
   const navigate = useNavigate();
   const isSubscriber = !!user?.subscriptionTier && user.subscriptionTier !== 'free';
 
-  const [form, setForm] = useState({ title: '', genre: '', subscriberOnly: false });
+  const [form, setForm] = useState({
+    title: '', genre: '', subscriberOnly: false,
+    isrc: '', iswc: '',
+    isPreSave: false, releaseDate: '', previewSeconds: 46,
+  });
   const [audioFile, setAudioFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -37,6 +41,13 @@ export default function UploadTrack() {
       fd.append('title', form.title);
       fd.append('genre', form.genre);
       fd.append('subscriberOnly', form.subscriberOnly);
+      if (form.isrc) fd.append('isrc', form.isrc);
+      if (form.iswc) fd.append('iswc', form.iswc);
+      fd.append('isPreSave', form.isPreSave);
+      if (form.isPreSave) {
+        if (form.releaseDate) fd.append('releaseDate', form.releaseDate);
+        fd.append('previewSeconds', form.previewSeconds);
+      }
       fd.append('audio', audioFile);
 
       await api.post('/songs', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -99,6 +110,40 @@ export default function UploadTrack() {
           />
           <label htmlFor="subscriberOnly" style={{ fontSize: '.9rem' }}>Make this an exclusive subscriber-only track</label>
         </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="form-group">
+            <label className="form-label">ISRC (optional)</label>
+            <input className="form-input" value={form.isrc} onChange={e => setForm(f => ({ ...f, isrc: e.target.value }))} placeholder="e.g. US-ABC-25-12345" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">ISWC (optional)</label>
+            <input className="form-input" value={form.iswc} onChange={e => setForm(f => ({ ...f, iswc: e.target.value }))} placeholder="e.g. T-123456789-0" />
+          </div>
+        </div>
+
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            type="checkbox"
+            id="isPreSave"
+            checked={form.isPreSave}
+            onChange={e => setForm(f => ({ ...f, isPreSave: e.target.checked }))}
+          />
+          <label htmlFor="isPreSave" style={{ fontSize: '.9rem' }}>This is an upcoming release — enable pre-save</label>
+        </div>
+
+        {form.isPreSave && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="form-group">
+              <label className="form-label">Release Date</label>
+              <input type="date" className="form-input" required value={form.releaseDate} onChange={e => setForm(f => ({ ...f, releaseDate: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Preview Length (seconds)</label>
+              <input type="number" min="10" max="90" className="form-input" value={form.previewSeconds} onChange={e => setForm(f => ({ ...f, previewSeconds: e.target.value }))} />
+            </div>
+          </div>
+        )}
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? 'Uploading…' : <>Upload Track <IconUpload size={16}/></>}

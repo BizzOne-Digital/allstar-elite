@@ -39,6 +39,7 @@ export default function Footer() {
               <li><Link to="/services">Distribution</Link></li>
               <li><Link to="/services">Merchandise</Link></li>
               <li><Link to="/services">Exclusive Videos</Link></li>
+              <li><Link to="/upcoming">Pre-Save Releases</Link></li>
               <li><Link to="/partnerships">Brand Partnerships</Link></li>
               <li><Link to="/pricing">Pricing</Link></li>
             </ul>
