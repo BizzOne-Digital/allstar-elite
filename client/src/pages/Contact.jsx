@@ -3,12 +3,14 @@ import { toast } from 'react-hot-toast';
 import api from '../utils/api';
 import { IconMail, IconPhone, IconMapPin, IconArrowRight, IconCheck } from '../components/ui/Icons';
 import useReveal from '../hooks/useReveal';
+import useSiteSettings, { telHref } from '../hooks/useSiteSettings';
 import './Contact.css';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const site = useSiteSettings();
   useReveal();
 
   const handleSubmit = async (e) => {
@@ -38,9 +40,9 @@ export default function Contact() {
         {/* Info Cards */}
         <div className="contact-info reveal-stagger reveal">
           {[
-            { icon: <IconMail size={22}/>, label: 'Email Us', value: 'info@allstarelite.com', href: 'mailto:info@allstarelite.com' },
-            { icon: <IconPhone size={22}/>, label: 'Call Us', value: '+1 (555) 123-4567', href: 'tel:+15551234567' },
-            { icon: <IconMapPin size={22}/>, label: 'Visit Us', value: 'Los Angeles, CA', href: null },
+            { icon: <IconMail size={22}/>, label: 'Email Us', value: site.contactEmail, href: `mailto:${site.contactEmail}` },
+            { icon: <IconPhone size={22}/>, label: 'Call Us', value: site.contactPhone, href: telHref(site.contactPhone) },
+            { icon: <IconMapPin size={22}/>, label: 'Visit Us', value: site.address, href: null },
           ].map((c, i) => (
             <div className="contact-info-card" key={i}>
               <div className="contact-info-card__icon">{c.icon}</div>

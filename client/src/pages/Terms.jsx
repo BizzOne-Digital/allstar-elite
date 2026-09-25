@@ -1,6 +1,8 @@
+import useSiteSettings from '../hooks/useSiteSettings';
 import './Legal.css';
 
 export default function Terms() {
+  const site = useSiteSettings();
   return (
     <div className="legal-page page-enter container">
       <h1>Terms of Service</h1>
@@ -76,7 +78,7 @@ export default function Terms() {
 
       <h2>10. Contact</h2>
       <p>
-        Questions about these Terms? Reach out at <a href="mailto:info@allstarelite.com">info@allstarelite.com</a>.
+        Questions about these Terms? Reach out at <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a>.
       </p>
     </div>
   );

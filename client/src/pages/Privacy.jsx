@@ -1,6 +1,8 @@
+import useSiteSettings from '../hooks/useSiteSettings';
 import './Legal.css';
 
 export default function Privacy() {
+  const site = useSiteSettings();
   return (
     <div className="legal-page page-enter container">
       <h1>Privacy Policy</h1>
@@ -68,7 +70,7 @@ export default function Privacy() {
 
       <h2>9. Contact</h2>
       <p>
-        Questions about this policy? Reach out at <a href="mailto:info@allstarelite.com">info@allstarelite.com</a>.
+        Questions about this policy? Reach out at <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a>.
       </p>
     </div>
   );

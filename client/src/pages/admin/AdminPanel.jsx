@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import { setSiteSettings, DEFAULT_SETTINGS } from '../../hooks/useSiteSettings';
 import {
   IconUsers, IconMusic, IconPackage, IconDollar, IconVideo, IconBarChart,
   IconSettings, IconUpload, IconTrash, IconEdit, IconEye, IconCheck, IconX,
@@ -19,6 +21,7 @@ const TABS = [
   { id: 'users', label: 'Users', icon: <IconUsers size={17}/> },
   { id: 'videos', label: 'Videos', icon: <IconVideo size={17}/> },
   { id: 'upload', label: 'Upload', icon: <IconUpload size={17}/> },
+  { id: 'settings', label: 'Settings', icon: <IconSettings size={17}/> },
 ];
 
 export default function AdminPanel() {
@@ -368,6 +371,9 @@ export default function AdminPanel() {
         {activeTab === 'upload' && (
           <UploadForm onDone={(type) => setActiveTab(type === 'blog' ? 'blog' : type === 'song' ? 'songs' : 'products')} onBlogCreated={(post) => setBlogs(b => [post, ...b])} />
         )}
+
+        {/* SETTINGS */}
+        {activeTab === 'settings' && <SettingsPanel />}
       </main>
     </div>
   );
@@ -546,6 +552,136 @@ function EditBlogModal({ post, onClose, onSave }) {
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function SettingsPanel() {
+  const { user, updateUser } = useAuth();
+  const [site, setSite] = useState(DEFAULT_SETTINGS);
+  const [account, setAccount] = useState({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '' });
+  const [pwd, setPwd] = useState({ currentPassword: '', newPassword: '', confirm: '' });
+  const [saving, setSaving] = useState('');
+
+  useEffect(() => {
+    api.get('/settings')
+      .then(r => setSite(s => ({ ...s, ...r.data.settings, social: { ...s.social, ...r.data.settings?.social } })))
+      .catch(() => toast.error('Could not load website settings.'));
+    api.get('/users/me').then(r => {
+      const u = r.data.user;
+      setAccount({ name: u.name || '', email: u.email || '', phone: u.phone || '' });
+    }).catch(() => {});
+  }, []);
+
+  const saveSite = async (e) => {
+    e.preventDefault();
+    setSaving('site');
+    try {
+      const { contactEmail, contactPhone, address, social } = site;
+      const res = await api.put('/settings', { contactEmail, contactPhone, address, social });
+      setSiteSettings(res.data.settings);
+      toast.success('Website contact info updated.');
+    } catch (err) { toast.error(err.response?.data?.message || 'Update failed.'); }
+    finally { setSaving(''); }
+  };
+
+  const saveAccount = async (e) => {
+    e.preventDefault();
+    setSaving('account');
+    try {
+      const res = await api.put('/users/profile', account);
+      updateUser(res.data.user);
+      toast.success('Account details updated.');
+    } catch (err) { toast.error(err.response?.data?.message || 'Update failed.'); }
+    finally { setSaving(''); }
+  };
+
+  const savePassword = async (e) => {
+    e.preventDefault();
+    if (pwd.newPassword.length < 6) return toast.error('New password must be at least 6 characters.');
+    if (pwd.newPassword !== pwd.confirm) return toast.error('New passwords do not match.');
+    setSaving('pwd');
+    try {
+      const res = await api.put('/auth/update-password', { currentPassword: pwd.currentPassword, newPassword: pwd.newPassword });
+      if (res.data.token) localStorage.setItem('ae_token', res.data.token);
+      setPwd({ currentPassword: '', newPassword: '', confirm: '' });
+      toast.success('Password changed.');
+    } catch (err) { toast.error(err.response?.data?.message || 'Password change failed.'); }
+    finally { setSaving(''); }
+  };
+
+  const setSocial = (k, v) => setSite(s => ({ ...s, social: { ...s.social, [k]: v } }));
+  const hint = { fontSize: '.85rem', color: 'var(--gray-400)', marginTop: -8, marginBottom: 18 };
+  const twoCol = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 };
+
+  return (
+    <div style={{ display: 'grid', gap: 28 }}>
+      <form className="upload-form" onSubmit={saveSite}>
+        <div className="admin-section-title">Website Contact Info</div>
+        <p style={hint}>Shown in the footer, Contact page and legal pages.</p>
+        <div className="form-group">
+          <label className="form-label">Contact Email</label>
+          <input type="email" className="form-input" required value={site.contactEmail} onChange={e => setSite(s => ({ ...s, contactEmail: e.target.value }))} />
+        </div>
+        <div style={twoCol}>
+          <div className="form-group">
+            <label className="form-label">Phone Number</label>
+            <input className="form-input" value={site.contactPhone} onChange={e => setSite(s => ({ ...s, contactPhone: e.target.value }))} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Location / Address</label>
+            <input className="form-input" value={site.address} onChange={e => setSite(s => ({ ...s, address: e.target.value }))} />
+          </div>
+        </div>
+        <div style={twoCol}>
+          {[['instagram', 'Instagram URL'], ['facebook', 'Facebook URL'], ['youtube', 'YouTube URL'], ['twitter', 'X / Twitter URL']].map(([k, label]) => (
+            <div className="form-group" key={k}>
+              <label className="form-label">{label}</label>
+              <input type="url" className="form-input" value={site.social[k]} onChange={e => setSocial(k, e.target.value)} placeholder="https://" />
+            </div>
+          ))}
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={saving === 'site'}>{saving === 'site' ? 'Saving...' : 'Save Contact Info'}</button>
+      </form>
+
+      <form className="upload-form" onSubmit={saveAccount}>
+        <div className="admin-section-title">Admin Account</div>
+        <p style={hint}>This email is the one you use to log in to the admin panel.</p>
+        <div className="form-group">
+          <label className="form-label">Name</label>
+          <input className="form-input" required value={account.name} onChange={e => setAccount(a => ({ ...a, name: e.target.value }))} />
+        </div>
+        <div style={twoCol}>
+          <div className="form-group">
+            <label className="form-label">Login Email</label>
+            <input type="email" className="form-input" required value={account.email} onChange={e => setAccount(a => ({ ...a, email: e.target.value }))} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Phone</label>
+            <input className="form-input" value={account.phone} onChange={e => setAccount(a => ({ ...a, phone: e.target.value }))} />
+          </div>
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={saving === 'account'}>{saving === 'account' ? 'Saving...' : 'Save Account'}</button>
+      </form>
+
+      <form className="upload-form" onSubmit={savePassword}>
+        <div className="admin-section-title">Change Password</div>
+        <div className="form-group">
+          <label className="form-label">Current Password</label>
+          <input type="password" className="form-input" required autoComplete="current-password" value={pwd.currentPassword} onChange={e => setPwd(p => ({ ...p, currentPassword: e.target.value }))} />
+        </div>
+        <div style={twoCol}>
+          <div className="form-group">
+            <label className="form-label">New Password</label>
+            <input type="password" className="form-input" required autoComplete="new-password" value={pwd.newPassword} onChange={e => setPwd(p => ({ ...p, newPassword: e.target.value }))} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Confirm New Password</label>
+            <input type="password" className="form-input" required autoComplete="new-password" value={pwd.confirm} onChange={e => setPwd(p => ({ ...p, confirm: e.target.value }))} />
+          </div>
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={saving === 'pwd'}>{saving === 'pwd' ? 'Saving...' : 'Change Password'}</button>
+      </form>
     </div>
   );
 }

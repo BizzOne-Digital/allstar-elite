@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { IconTwitter, IconInstagram, IconYoutube, IconFacebook, IconMail, IconPhone, IconMapPin } from '../ui/Icons';
+import useSiteSettings, { telHref } from '../../hooks/useSiteSettings';
 import './Footer.css';
 
 export default function Footer() {
+  const site = useSiteSettings();
   return (
     <footer className="footer">
       <div className="container">
@@ -14,10 +16,10 @@ export default function Footer() {
             </div>
             <p>Empowering independent artists with world-class music distribution, merchandise, and fan engagement tools.</p>
             <div className="footer__socials">
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" aria-label="Twitter"><IconTwitter size={18}/></a>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram"><IconInstagram size={18}/></a>
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube"><IconYoutube size={18}/></a>
-              <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook"><IconFacebook size={18}/></a>
+              <a href={site.social.twitter} target="_blank" rel="noreferrer" aria-label="Twitter"><IconTwitter size={18}/></a>
+              <a href={site.social.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><IconInstagram size={18}/></a>
+              <a href={site.social.youtube} target="_blank" rel="noreferrer" aria-label="YouTube"><IconYoutube size={18}/></a>
+              <a href={site.social.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><IconFacebook size={18}/></a>
             </div>
           </div>
 
@@ -51,15 +53,15 @@ export default function Footer() {
             <ul className="footer__contact">
               <li>
                 <IconMail size={15}/>
-                <a href="mailto:info@allstarelite.com">info@allstarelite.com</a>
+                <a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a>
               </li>
               <li>
                 <IconPhone size={15}/>
-                <a href="tel:+15551234567">+1 (555) 123-4567</a>
+                <a href={telHref(site.contactPhone)}>{site.contactPhone}</a>
               </li>
               <li>
                 <IconMapPin size={15}/>
-                <span>Los Angeles, CA</span>
+                <span>{site.address}</span>
               </li>
             </ul>
           </div>

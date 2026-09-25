@@ -35,6 +35,7 @@ app.use('/api/blog',      require('./routes/blog'));
 app.use('/api/brand-inquiries', require('./routes/brandInquiries'));
 app.use('/api/youtube',   require('./routes/youtube'));
 app.use('/api/upload',    require('./routes/upload'));
+app.use('/api/settings',  require('./routes/settings'));
 
 // ── Health Check ──
 app.get('/api/health', (req, res) => {
